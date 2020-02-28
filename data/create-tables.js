@@ -15,6 +15,10 @@ async function run() {
         
             CREATE TABLE favorites (
                 id VARCHAR(64) PRIMARY KEY
+                name VARCHAR NOT NULL(256),
+                weight VARCHAR NOT NULL,
+                homeworld VARCHAR NOT NULL,
+                user_id INTEGER NOT NULL REFERENCES users(id)
              
             );
         `);

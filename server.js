@@ -38,19 +38,70 @@ const authRoutes = createAuthRoutes({
         return result.rows[0];
     }
 });
+app.post('/api/swapi', async (req, res) => {
+    try {
+        const data = await request.get(`https://swapi.com/api/people/?search=$(req.query.search)`);
+
+        res.json(data.body);
+    } catch (e) {
+        console.error(e);
+    }
+});
 
 // setup authentication routes
 app.use('/api/auth', authRoutes);
-
 // everything that starts with "/api" below here requires an auth token!
-app.use('/api', ensureAuth);
+app.use('/api/my', ensureAuth);
+
+app.get('api/my/favorites', async (req, res) => {
+    try {
+        const myQuery = `
+    SELECT * FROM favorites
+    WHERE user_id=$1
+    `;
+        const favorites = await client.query(myQuery, [req.userId]);
+    
+        res.json(favorites.rows);
+    } catch (e) {
+        console.error(e);
+    }
+});
+app.post('/api/my/favorites', async (req, res) => {
+    try {
+        const {
+            name,
+            weight,
+            homeworld,
+        } = req.body;
+
+        const newFavorites = await client.query(`
+        INSERT INTO favorites (name, weight, homeworld, user_id)
+        values ($1, $2, $3, $4)
+        returning *
+        `, [
+            name,
+            weight,
+            homeworld,
+            req.userId,
+        ]);
+
+        res.json(newFavorites.rows[0]);
+    } catch (e) {
+        console.error(e);
+    }
+});
 
 // *** API Routes ***
 app.get('/api/swapi', async (req, res) => {
-    const data = await request.get(`https://swapi.co/api/people/?search=${req.query.search}`);
+    try {
+        const data = await request.get(`https://swapi.co/api/people/?search=${req.query.search}`);
 
-    res.json(data.body);
+        res.json(data.body);
+    } catch (e) {
+        console.error(e);
+    }
 });
+
 app.listen(process.env.PORT, () => {
     console.log('listening at ', process.env.PORT);
 });
