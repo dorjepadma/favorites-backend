@@ -15,14 +15,14 @@ app.use(morgan('dev')); // http logging
 app.use(cors()); // enable CORS request
 app.use(express.static('public')); // server files from /public folder
 app.use(express.json()); // enable reading incoming json data
-
+app.use(express.urlencoded({ extended: true }));
 // Auth
 const ensureAuth = require('./lib/auth/ensure-auth');
 const createAuthRoutes = require('./lib/auth/create-auth-routes');
 const authRoutes = createAuthRoutes({
     async selectUser(email) {
         const result = await client.query(`
-            SELECT id, email, hash, display_name as "displayName" 
+            SELECT id, email, hash,
             FROM users
             WHERE email = $1;
         `, [email]);
@@ -31,9 +31,9 @@ const authRoutes = createAuthRoutes({
     async insertUser(user, hash) {
         console.log(user);
         const result = await client.query(`
-            INSERT into users (email, hash, display_name)
-            VALUES ($1, $2, $3)
-            RETURNING id, email, display_name as "displayName";
+            INSERT into users (email, hash,)
+            VALUES ($1, $2,)
+            RETURNING id, email;
         `, [user.email, hash, user.displayName]);
         return result.rows[0];
     }
