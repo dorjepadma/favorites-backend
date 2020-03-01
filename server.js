@@ -6,23 +6,18 @@ const cors = require('cors');
 const morgan = require('morgan');
 // Database Client
 const client = require('./lib/client');
+const ensureAuth = require('./lib/auth/ensure-auth');
+const createAuthRoutes = require('./lib/auth/create-auth-routes');
 const request = require('superagent');
 // Services
 
+
 // Application Setup
-const app = express();
-app.use(morgan('dev')); // http logging
-app.use(cors()); // enable CORS request
-app.use(express.static('public')); // server files from /public folder
-app.use(express.json()); // enable reading incoming json data
-app.use(express.urlencoded({ extended: true }));
 // Auth
-const ensureAuth = require('./lib/auth/ensure-auth');
-const createAuthRoutes = require('./lib/auth/create-auth-routes');
 const authRoutes = createAuthRoutes({
     async selectUser(email) {
         const result = await client.query(`
-            SELECT id, email, hash,
+            SELECT id, email, hash, display_name as "display_name"
             FROM users
             WHERE email = $1;
         `, [email]);
@@ -31,22 +26,22 @@ const authRoutes = createAuthRoutes({
     async insertUser(user, hash) {
         console.log(user);
         const result = await client.query(`
-            INSERT into users (email, hash,)
-            VALUES ($1, $2,)
-            RETURNING id, email;
-        `, [user.email, hash, user.displayName]);
+            INSERT into users (email, hash, display_name)
+            VALUES ($1, $2, $3)
+            RETURNING id, email, display_name;
+        `, [user.email, hash, user.display_name]);
         return result.rows[0];
     }
 });
-app.post('/api/swapi', async (req, res) => {
-    try {
-        const data = await request.get(`https://swapi.com/api/people/?search=$(req.query.search)`);
 
-        res.json(data.body);
-    } catch (e) {
-        console.error(e);
-    }
-});
+// Here be the application set up
+
+const app = express();
+app.use(morgan('dev')); // http logging
+app.use(cors()); // enable CORS request
+app.use(express.static('public')); // server files from /public folder
+app.use(express.json()); // enable reading incoming json data
+app.use(express.urlencoded({ extended: true }));
 
 // setup authentication routes
 app.use('/api/auth', authRoutes);
@@ -62,6 +57,22 @@ app.get('api/my/favorites', async (req, res) => {
         const favorites = await client.query(myQuery, [req.userId]);
     
         res.json(favorites.rows);
+    } catch (e) {
+        console.error(e);
+    }
+});
+app.delete('/api/me/favorites/:id', async (req, res) => {
+    try {
+        const myQuery = `
+            DELETE FROM favorites
+            WHERE id=$1
+            RETURNING *
+        `;
+        
+        const favorites = await client.query(myQuery, [req.params.id]);
+        
+        res.json(favorites.rows);
+
     } catch (e) {
         console.error(e);
     }
@@ -101,6 +112,7 @@ app.get('/api/swapi', async (req, res) => {
         console.error(e);
     }
 });
+
 
 app.listen(process.env.PORT, () => {
     console.log('listening at ', process.env.PORT);
