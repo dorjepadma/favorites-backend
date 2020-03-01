@@ -61,7 +61,7 @@ app.get('api/my/favorites', async (req, res) => {
         console.error(e);
     }
 });
-app.delete('/api/me/favorites/:id', async (req, res) => {
+app.delete('/api/my/favorites/:id', async (req, res) => {
     try {
         const myQuery = `
             DELETE FROM favorites

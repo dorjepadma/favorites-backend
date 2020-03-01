@@ -17,7 +17,7 @@ async function run() {
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(256) NOT NULL,
                 weight INTEGER NOT NULL,
-                homeworld VARCHAR NOT NULL,
+                homeworld VARCHAR(256) NOT NULL,
                 user_id INTEGER NOT NULL REFERENCES users(id)
             );
         `);
