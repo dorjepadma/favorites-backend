@@ -17,7 +17,7 @@ const request = require('superagent');
 const authRoutes = createAuthRoutes({
     async selectUser(email) {
         const result = await client.query(`
-            SELECT id, email, hash, display_name as "display_name"
+            SELECT id, email, hash,
             FROM users
             WHERE email = $1;
         `, [email]);
@@ -26,10 +26,10 @@ const authRoutes = createAuthRoutes({
     async insertUser(user, hash) {
         console.log(user);
         const result = await client.query(`
-            INSERT into users (email, hash, display_name)
+            INSERT into users (email, hash,)
             VALUES ($1, $2, $3)
-            RETURNING id, email, display_name;
-        `, [user.email, hash, user.display_name]);
+            RETURNING id, email;
+        `, [user.email, hash]);
         return result.rows[0];
     }
 });
@@ -37,13 +37,13 @@ const authRoutes = createAuthRoutes({
 // Here be the application set up
 
 const app = express();
-app.use(morgan('dev')); // http logging
-app.use(cors()); // enable CORS request
-app.use(express.static('public')); // server files from /public folder
-app.use(express.json()); // enable reading incoming json data
+app.use(morgan('dev')); 
+app.use(cors()); 
+app.use(express.static('public')); 
+app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// setup authentication routes
+
 app.use('/api/auth', authRoutes);
 // everything that starts with "/api" below here requires an auth token!
 app.use('/api/my', ensureAuth);
