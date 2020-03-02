@@ -17,7 +17,7 @@ const request = require('superagent');
 const authRoutes = createAuthRoutes({
     async selectUser(email) {
         const result = await client.query(`
-            SELECT id, email, hash,
+            SELECT id, email, hash, display_name as "display_name"
             FROM users
             WHERE email = $1;
         `, [email]);
@@ -26,9 +26,9 @@ const authRoutes = createAuthRoutes({
     async insertUser(user, hash) {
         console.log(user);
         const result = await client.query(`
-            INSERT into users (email, hash,)
+            INSERT into users (email, hash, display_name)
             VALUES ($1, $2, $3)
-            RETURNING id, email;
+            RETURNING id, email, display_name;
         `, [user.email, hash]);
         return result.rows[0];
     }
