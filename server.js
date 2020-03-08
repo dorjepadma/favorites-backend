@@ -29,7 +29,7 @@ const authRoutes = createAuthRoutes({
             INSERT into users (email, hash, display_name)
             VALUES ($1, $2, $3)
             RETURNING id, email, display_name;
-        `, [user.email, hash]);
+        `, [user.email, hash, user.display_name]);
         return result.rows[0];
     }
 });
@@ -48,7 +48,7 @@ app.use('/api/auth', authRoutes);
 // everything that starts with "/api" below here requires an auth token!
 app.use('/api/my', ensureAuth);
 
-app.get('api/my/favorites', async (req, res) => {
+app.get('/api/my/favorites', async (req, res) => {
     try {
         const myQuery = `
     SELECT * FROM favorites
@@ -81,18 +81,18 @@ app.post('/api/my/favorites', async (req, res) => {
     try {
         const {
             name,
-            weight,
-            homeworld,
+            hair_color,
+            eye_color,
         } = req.body;
 
         const newFavorites = await client.query(`
-        INSERT INTO favorites (name, weight, homeworld, user_id)
+        INSERT INTO favorites (name, hair_color, eye_color, user_id)
         values ($1, $2, $3, $4)
         returning *
         `, [
             name,
-            weight,
-            homeworld,
+            hair_color,
+            eye_color,
             req.userId,
         ]);
 
@@ -112,8 +112,6 @@ app.get('/api/swapi', async (req, res) => {
         console.error(e);
     }
 });
-
-
 app.listen(process.env.PORT, () => {
     console.log('listening at ', process.env.PORT);
 });
