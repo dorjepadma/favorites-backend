@@ -113,5 +113,5 @@ app.get('/api/swapi', async (req, res) => {
     }
 });
 app.listen(process.env.PORT, () => {
-    console.log('listening at ', process.env.PORT);
+    console.log('listening at', process.env.PORT);
 });
